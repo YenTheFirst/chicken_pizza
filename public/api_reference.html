@@ -1,0 +1,16 @@
+all queries return JSON<br/>
+at the moment, all tags are based on what MPD returns for tags, and ARE case sensitive
+
+<ul>
+	<li>/all_tracks --- returns all the tracks. a bit slow, try not to call ;)</li>
+	<li>/search/:query --- returns all tracks which match :query, on any field. if there's multiple words seperated by whitespace, then _all_ words must match, but not necessarily on the same field. query is case insensitive</li>
+	<li>/untagged/:tag --- returns all tracks which don't have :tag set. useful for going through and getting things tagged. tags are as by returned by MPD</li>
+	<li>/filter?query=:... --- selecs tracks based on a interated list of filters. similar to the 'itunes view'. returns a json dictionary of 'available' things (based on all the tags, and finally the remaining tracks). filters ARE case sensitive, both on tag and value, and values must be exact match(at the moment)
+		<p>example<br/>
+		the query: /filter?filter[Artist][]=Daft%20Punk&filter[Artist][]=U2&filter[Album][]=Creamfields&filter[Album][]=Tron%20Legacy%20(Original%20Motion%20Picture%20Soundtrack)<br/>
+		corresponds to the slightly prettier: {"filter"=>[{"Artist"=>["Daft Punk","U2"]},{"Album"=>["Creamfields,"Tron Legacy (Original Motion Picture Soundtrack)"]}]}<br/>
+		this will return all tracks which are by either Daft Punk or U2, AND are from the albums Creamfield or "Tron Legacy (Motion Picture Soundtrack)"<br/>
+		in addition, it will return the list of all albums including tracks by either Daft Punk or U2<br/>
+		in addition, it will return the list of all artists in the database(Artist is the top level filter here)<br/>
+		</p></li>
+</ul>
