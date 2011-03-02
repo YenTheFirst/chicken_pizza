@@ -1,0 +1,118 @@
+<html>
+	<head>
+		<title>the title</title>
+		<script type="text/javascript">
+			function tag_to_id(tag){
+				return tag.toLowerCase()+"_selector"
+			}
+			function obj_to_query_string(obj,base_string){
+				if (typeof(obj)=="object"){
+					var res=[]
+					if (typeof(obj.length)=="undefined"){ // not an array
+						if (key_count(obj)==0)
+							return base_string;
+						for (var i in obj)
+							res.push(obj_to_query_string(obj[i],base_string+"["+i+"]"));
+					}
+					else{ //an array
+						if (obj.length==0)
+							return base_string;
+						for (var i = 0; i<obj.length;i++)
+							res.push(obj_to_query_string(obj[i],base_string+"[]")); //same line as above ;)
+					}
+					return res.join("&");
+				}
+				else{
+					return base_string+"="+encodeURIComponent(obj)
+				}
+			}
+			function key_count(obj){
+				count=0;
+				for (i in obj) {if (obj.hasOwnProperty(i)) count++;}
+				return count;
+			}
+			function array_include(arr,val){
+				for (var i=0; i<arr.length;i++)
+					if (arr[i]==val)
+						return true;
+				return false;
+			}
+			
+			function update_view(){
+				filters=collect_filters();
+				var url="/filter?"+obj_to_query_string(filters,"filters")
+				
+				//get the url
+				xhr = new XMLHttpRequest();
+				xhr.onreadystatechange=function(){
+					if (xhr.readyState==4 && xhr.status==200){
+						update_selectors(JSON.parse(xhr.responseText),filters);
+					}
+				}
+				console.debug("getting "+url);
+				xhr.open("GET",url,true);
+				xhr.send(null);
+			}
+			function update_selectors(data,filters){
+				all_data=data
+				for (tag in data){
+					var e=document.getElementById(tag_to_id(tag));
+					e.options.length=0;
+					for (var i=0;i<data[tag].length;i++){
+						//possibly factor this out later...
+						if (tag=="Tracks"){
+							var fname=data[tag][i]["file"]
+							var title=data[tag][i]["Title"] || "(Unknown Title, file="+fname+")"
+							e.add(new Option(title,fname))
+						}
+						else{
+							var val=data[tag][i];
+							var inc=false;
+							if (typeof(filters[tag])!="undefined"){
+								inc=array_include(filters[tag],val||"");
+							}
+							if (val)
+								var o=new Option(val,val,inc,inc);
+							else
+								var o=new Option("(Unknown "+tag+")","",inc,inc)
+							e.add(o);
+							if (inc)
+								o.selected="true"
+						}
+					}
+				}
+			}
+			function collect_filters(){
+				var all={};
+				var tags=["Genre","Artist","Album"]
+				for (var i in tags){
+					var tag=tags[i]
+					all[tag]=[];
+					var e=document.getElementById(tag_to_id(tag));
+					for (var i=0; i<e.options.length; i++)
+						if(e.options[i].selected)
+							all[tag].push(e.options[i].value);
+					//if (all[tag].length==0)
+					//	delete all[tag];
+				}
+				return all;
+			}
+			
+			window.onload=function(){
+				var arr=document.getElementsByClassName("filter_selector");
+				for (var i in arr){
+					arr[i].onchange=update_view;
+				}
+				update_view();
+			}
+		</script>
+			
+	</head>	
+<body>
+<body>
+	<select multiple="true" class="filter_selector" id="genre_selector"></select>
+	<select multiple="true" class="filter_selector" id="artist_selector"></select>
+	<select multiple="true" class="filter_selector" id="album_selector"></select>
+	<select multiple="true" id="tracks_selector"></select>
+	<div id="queue"></div>
+</body>
