@@ -141,11 +141,13 @@
 						var li=document.createElement("li");
 						var track=data[i];
 						li.textContent=(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")
+						li.i=i
 						if (i<song_i)
 							li.className="already_played"
 						if (i==song_i)
 							li.className="current_song"
 						ul.appendChild(li);
+						li.ondblclick=function(){simple_control("/playback/play?pos="+this.i,"put");}
 					}
 				});
 			}
