@@ -173,8 +173,8 @@
 				},250);
 			}
 			function do_search(query){
-				ajax("/search/"+encodeURIComponent(query),"GET",null,function(d){
-					update_selectors({Tracks: d});
+				ajax("/search/"+encodeURIComponent(query)+"?"+obj_to_query_string(["Genre","Artist","Album"],"tags"),"GET",null,function(d){
+					update_selectors(d,{});
 				});
 			}
 			window.onload=function(){

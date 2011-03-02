@@ -20,13 +20,16 @@ get '/untagged/:tag' do
 end
 get '/search/:query' do
 	all_q=params[:query].split(/\s/).map {|q| Regexp.new(q,true)} #it'll be converted to a regex anyway if we use match, and this is easier than downcasing everything for case insensitivity
-	all_tracks.select do |entry|
+	tracks=all_tracks.select do |entry|
 		all_q.all? do |query|
 			entry.any? do |key,value|
 				query === value
 			end
 		end
-	end.to_json
+	end
+	res={"Tracks"=>tracks}
+	params[:tags].each {|tag| res[tag] = tracks.map {|t| t[tag]}.uniq} if params[:tags]
+	res.to_json
 end
 
 get '/filter' do
