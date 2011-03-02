@@ -1,9 +1,18 @@
 <html>
 	<head>
 		<title>the title</title>
+		<style type="text/css">
+			.already_played{
+				color: grey;
+			}
+			.current_song{
+				background-color:LightBlue;
+			}
+		</style>
 		<script type="text/javascript">
 			//global vars
-			queue_version=null
+			status=null
+			
 			//util functions
 			function ajax(url,method,postdata,f){
 				var xhr = new XMLHttpRequest();
@@ -115,14 +124,16 @@
 						li.textContent=i+": "+data[i]
 						ul.appendChild(li)
 					}
-					if (queue_version!=data["queue_version"]){
-						update_queue();
-						queue_version=data["queue_version"];
+					if (status.queue_version!=data.queue_version){
+						update_queue(data.song);
 					}
-					document.getElementById("vol").value=data["volume"];
+					document.getElementById("vol").value=data.volume;
+					
+					//now that comparisons are done, use this
+					status=data;
 				});
 			}
-			function update_queue(){
+			function update_queue(song_i){
 				ajax("/queue/list","GET",null,function(data){
 					var ul = document.getElementById("queue_list");
 					ul.innerHTML="";
@@ -130,6 +141,10 @@
 						var li=document.createElement("li");
 						var track=data[i];
 						li.textContent=(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")
+						if (i<song_i)
+							li.className="already_played"
+						if (i==song_i)
+							li.className="current_song"
 						ul.appendChild(li);
 					}
 				});
