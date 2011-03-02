@@ -2,6 +2,8 @@ all queries return JSON<br/>
 at the moment, all tags are based on what MPD returns for tags, and ARE case sensitive
 
 <ul>
+	<li>/status</li>
+	
 	<li>/all_tracks --- returns all the tracks. a bit slow, try not to call ;)</li>
 	<li>/search/:query --- returns all tracks which match :query, on any field. if there's multiple words seperated by whitespace, then _all_ words must match, but not necessarily on the same field. query is case insensitive</li>
 	<li>/untagged/:tag --- returns all tracks which don't have :tag set. useful for going through and getting things tagged. tags are as by returned by MPD</li>
@@ -13,4 +15,10 @@ at the moment, all tags are based on what MPD returns for tags, and ARE case sen
 		in addition, it will return the list of all albums including tracks by either Daft Punk or U2<br/>
 		in addition, it will return the list of all artists in the database(Artist is the top level filter here)<br/>
 		</p></li>
+	<li>/queue/list</li>
+	<li>/playback/next</li>
+	<li>/playback/previous</li>
+	<li>/playback/pause?status=[0,1] if status=0, pauses, if status=1, plays</li>
+	<li>/playback/play plays the playlist. if the optional ?pos=&lt;index&gt; is given, start at that index</li>
+	<li>/playback/setvol?vol=</li>
 </ul>

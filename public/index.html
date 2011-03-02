@@ -2,6 +2,19 @@
 	<head>
 		<title>the title</title>
 		<script type="text/javascript">
+			//global vars
+			queue_version=null
+			//util functions
+			function ajax(url,method,postdata,f){
+				var xhr = new XMLHttpRequest();
+				xhr.onreadystatechange=function(){
+					if (xhr.readyState==4 && xhr.status==200){
+						f(JSON.parse(xhr.responseText));
+					}
+				}
+				xhr.open(method,url,true);
+				xhr.send(postdata);
+			}
 			function tag_to_id(tag){
 				return tag.toLowerCase()+"_selector"
 			}
@@ -38,26 +51,22 @@
 				return false;
 			}
 			
+			//meat & potatoes
 			function update_view(){
 				filters=collect_filters();
 				var url="/filter?"+obj_to_query_string(filters,"filters")
 				
-				//get the url
-				xhr = new XMLHttpRequest();
-				xhr.onreadystatechange=function(){
-					if (xhr.readyState==4 && xhr.status==200){
-						update_selectors(JSON.parse(xhr.responseText),filters);
-					}
-				}
-				console.debug("getting "+url);
-				xhr.open("GET",url,true);
-				xhr.send(null);
+				ajax(url,"GET",null,function(response){
+					update_selectors(response,filters);
+					document.getElementById("search_box").value="";
+				})
 			}
 			function update_selectors(data,filters){
 				all_data=data
 				for (tag in data){
 					var e=document.getElementById(tag_to_id(tag));
-					e.options.length=0;
+					//e.options.length=0;
+					e.innerHTML=""
 					for (var i=0;i<data[tag].length;i++){
 						//possibly factor this out later...
 						if (tag=="Tracks"){
@@ -97,22 +106,94 @@
 				}
 				return all;
 			}
-			
+			function update_status(){
+				ajax("/status","GET",null,function(data){
+					var ul=document.getElementById("status_list")
+					ul.innerHTML=""
+					for (var i in data){
+						var li=document.createElement("li")
+						li.textContent=i+": "+data[i]
+						ul.appendChild(li)
+					}
+					if (queue_version!=data["queue_version"]){
+						update_queue();
+						queue_version=data["queue_version"];
+					}
+					document.getElementById("vol").value=data["volume"];
+				});
+			}
+			function update_queue(){
+				ajax("/queue/list","GET",null,function(data){
+					var ul = document.getElementById("queue_list");
+					ul.innerHTML="";
+					for (var i=0; i<data.length; i++){
+						var li=document.createElement("li");
+						var track=data[i];
+						li.textContent=(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")
+						ul.appendChild(li);
+					}
+				});
+			}
+			function simple_control(url,method){
+				ajax(url,method,null,function(d){update_status();});
+			}
+			function add_tracks(){
+				
+				var e=document.getElementById("tracks_selector")
+				for (var i=0; i<e.options.length; i++){
+					if (e.options[i].selected){
+						ajax("/queue/add?filename="+encodeURIComponent(e.options[i].value),"post",null,function(d){})
+					}
+				}
+				update_status();
+			}
+			timeout_id=null
+			function debounce_search(){
+				if (timeout_id)
+					clearTimeout(timeout_id)
+				timeout_id=setTimeout(function(){
+					do_search(document.getElementById("search_box").value);
+				},250);
+			}
+			function do_search(query){
+				ajax("/search/"+encodeURIComponent(query),"GET",null,function(d){
+					update_selectors({Tracks: d});
+				});
+			}
 			window.onload=function(){
 				var arr=document.getElementsByClassName("filter_selector");
 				for (var i in arr){
 					arr[i].onchange=update_view;
 				}
 				update_view();
+				update_status();
+				setInterval(update_status,10*1000)
 			}
 		</script>
 			
 	</head>	
 <body>
 <body>
+	<div id="controls">
+		<h2>Controls</h2>
+		<a href="#" onclick="simple_control('/queue/clear','put');">clear queue</a>
+		<a href="#" onclick="simple_control('/playback/play','put');">play from beginning</a>
+		<a href="#" onclick="simple_control('/playback/previous','post');">previous</a>
+		<a href="#" onclick="simple_control('/playback/next','post');">next</a>
+		<label for="vol">Volume</label><input id="vol" type="text" onchange="simple_control('/playback/setvol?vol='+this.value,'put');"/>
+	</div>
 	<select multiple="true" class="filter_selector" id="genre_selector"></select>
 	<select multiple="true" class="filter_selector" id="artist_selector"></select>
-	<select multiple="true" class="filter_selector" id="album_selector"></select>
-	<select multiple="true" id="tracks_selector"></select>
-	<div id="queue"></div>
+	<select multiple="true" class="filter_selector" id="album_selector" ondblclick="add_tracks();"></select>
+	<select multiple="true" id="tracks_selector" ondblclick="add_tracks()"></select>
+	<a href="#" onclick="add_tracks()">Add Selected Tracks</a>
+	<label for="search_box">search</label><input id="search_box" type="text" onchange="debounce_search();" onkeydown="debounce_search();"/>
+	<div id="status">
+		<h2>status</h2>
+		<ul id="status_list"></ul>
+	</div>
+	<div id="queue">
+		<h2>queue</h2>
+		<ul id="queue_list"></ul>
+	</div>
 </body>
