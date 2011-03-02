@@ -3,6 +3,6 @@ Bundler.require
 
 #require File.expand_path("../pizza",__FILE__)
 
-load 'pizza.rb'
+require './pizza.rb'
 run Sinatra::Application
 

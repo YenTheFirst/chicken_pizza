@@ -1,5 +1,5 @@
 #require 'mpd_driver.rb'
-load 'mpd_driver.rb'
+require './mpd_driver.rb'
 $mpd=MPD.new("chicken.local")
 #SECTION: other functions
 get '/' do
