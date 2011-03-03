@@ -11,7 +11,7 @@
 		</style>
 		<script type="text/javascript">
 			//global vars
-			status=null
+			status={queue_version: -1}
 			
 			//util functions
 			function ajax(url,method,postdata,f){
@@ -81,7 +81,7 @@
 						if (tag=="Tracks"){
 							var fname=data[tag][i]["file"]
 							var title=data[tag][i]["Title"] || "(Unknown Title, file="+fname+")"
-							e.add(new Option(title,fname))
+							e.appendChild(new Option(title,fname))
 						}
 						else{
 							var val=data[tag][i];
@@ -93,7 +93,7 @@
 								var o=new Option(val,val,inc,inc);
 							else
 								var o=new Option("(Unknown "+tag+")","",inc,inc)
-							e.add(o);
+							e.appendChild(o);
 							if (inc)
 								o.selected="true"
 						}
