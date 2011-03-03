@@ -70,10 +70,11 @@ put '/queue/clear' do
 	#TODO: return
 	'["ok"]'
 end
-delete '/queue/delete/:song_id' do
+delete '/queue/delete/:pos' do
 	#TODO: safety here
-	$mpd.send_command("delete "+params[:song_id])
+	$mpd.send_command("delete "+params[:pos])
 	#TODO: return
+	'["ok"]'
 end
 put '/queue/move/:song_id' do
 	$mpd.send_command("move #{params[:song_id]} #{params[:pos]}")

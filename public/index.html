@@ -140,7 +140,12 @@
 					for (var i=0; i<data.length; i++){
 						var li=document.createElement("li");
 						var track=data[i];
-						li.textContent=(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")
+						var a = document.createElement("a")
+						a.onclick=function(){simple_control("/queue/delete/"+this.parentElement.i,"delete")}
+						a.textContent="(-)"
+						li.appendChild(a)
+							//todo: html unsafe?
+						li.innerHTML+="  "+(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")
 						li.i=i
 						if (i<song_i)
 							li.className="already_played"
