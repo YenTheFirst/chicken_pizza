@@ -8,6 +8,9 @@
 			.current_song{
 				background-color:LightBlue;
 			}
+			.tagbox{
+				float:left;
+			}
 		</style>
 		<script type="text/javascript">
 			//global vars
@@ -74,7 +77,7 @@
 				all_data=data
 				for (tag in data){
 					var e=document.getElementById(tag_to_id(tag));
-					//e.options.length=0;
+					//e.options.length=0; <-- this seems to break things
 					e.innerHTML=""
 					for (var i=0;i<data[tag].length;i++){
 						//possibly factor this out later...
@@ -138,22 +141,25 @@
 					var ul = document.getElementById("queue_list");
 					ul.innerHTML="";
 					for (var i=0; i<data.length; i++){
-						var li=document.createElement("li");
 						var track=data[i];
+						
+						var li= document.createElement("li");
 						var a = document.createElement("a")
-						a.onclick=function(){simple_control("/queue/delete/"+this.parentElement.i,"delete")}
-						a.textContent="(-)"
-						li.appendChild(a)
-							//todo: html unsafe?
-						li.innerHTML+="  "+(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")
+						a.onclick=function(){simple_control("/queue/delete/"+this.parentElement.i,"delete"); return false;}
+						li.ondblclick=function(){simple_control("/playback/play?pos="+this.i,"put");}
+						ul.appendChild(li);
+						li.appendChild(a);
+						a.appendChild(document.createTextNode("(-)"));
+						a.setAttribute("href","#");
+						li.appendChild(document.createTextNode("  "+(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")));
 						li.i=i
 						if (i<song_i)
 							li.className="already_played"
 						if (i==song_i)
 							li.className="current_song"
-						ul.appendChild(li);
-						li.ondblclick=function(){simple_control("/playback/play?pos="+this.i,"put");}
+						
 					}
+					
 				});
 			}
 			function simple_control(url,method){
@@ -204,10 +210,11 @@
 		<a href="#" onclick="simple_control('/playback/next','post');">next</a>
 		<label for="vol">Volume</label><input id="vol" type="text" onchange="simple_control('/playback/setvol?vol='+this.value,'put');"/>
 	</div>
-	<select multiple="true" class="filter_selector" id="genre_selector"></select>
-	<select multiple="true" class="filter_selector" id="artist_selector"></select>
-	<select multiple="true" class="filter_selector" id="album_selector" ondblclick="add_tracks();"></select>
-	<select multiple="true" id="tracks_selector" ondblclick="add_tracks()"></select>
+	<div class="tagbox"><h3  for="genre_selector">Genre</h3><select multiple="true" class="filter_selector" id="genre_selector"></select></div>
+	<div class="tagbox"><h3  for="artist_selector">Artist</h3><select multiple="true" class="filter_selector" id="artist_selector"></select></div>
+	<div class="tagbox"><h3  for="album_selector">Album</h3><select multiple="true" class="filter_selector" id="album_selector" ondblclick="add_tracks();"></select></div>
+	<div class="tagbox"><h3  for="tracks_selector">Tracks</h3><select multiple="true" id="tracks_selector" ondblclick="add_tracks()"></select></div>
+	<div style="clear: both"></div>
 	<a href="#" onclick="add_tracks()">Add Selected Tracks</a>
 	<label for="search_box">search</label><input id="search_box" type="text" onchange="debounce_search();" onkeydown="debounce_search();"/>
 	<div id="status">
