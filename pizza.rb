@@ -8,6 +8,42 @@ end
 get '/status' do
 	$mpd.status.to_json
 end
+put '/reload_db' do
+	$mpd.send_command("update")
+	$cached_tracks=nil
+	'["ok"]'
+end
+	#meant to be used with the file_uploader javascript thing
+require 'tempfile'
+post '/upload_file' do
+	begin
+		fname=params[:qqfile]
+		t=Tempfile.new(fname) do |f|
+			f << request.env["rack.input"].read
+		end
+		artist,album = case fname.match(/\.[^.]*$/)[0].downcase #for the extension
+			when ".mp3"
+				Mp3Info.open(t.path) {|m| [m.tag["artist"],[m.tag["album"]]}
+			when ".m4a",".mp4","m4v"
+				m=MP4Info.open(t.path)
+				[m.ART,m.ALB]
+			when ".wav"
+				[nil,nil] #NO METADATA ON WAV, I THINK
+			when ".wma"
+				m=WmaInfo.new(t.path)
+				[m.tags["artist"],m.tags["album"] #UNTESTED, need wma with acceptable tags
+			when ".aif"
+				[nil,nil] #NO IDEA HERE, I don't think I have tagged aif files either
+			when ".ogg"
+				OggInfo.open(t.path) {|m| [m.tag["artist"],m.tag["album"]]}
+			else
+		end
+	ensure
+		t.close
+		t.unlink
+	end
+	'{ "success": true }'
+end
 #SECTION: search functions
 def all_tracks
 	$cached_tracks ||= $mpd.all_tracks
