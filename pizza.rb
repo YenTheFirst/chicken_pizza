@@ -1,6 +1,19 @@
 #require 'mpd_driver.rb'
 require './mpd_driver.rb'
 $mpd=MPD.new("chicken.local")
+
+track_sort=Proc.new do |t1,t2|
+	if t1["Track"]&&t2["Track"]
+		t1["Track"].to_i<=>t2["Track"].to_i
+	elsif t1["Track"]
+		-1
+	elsif t2["Track"]
+		1
+	else
+		(t1["Title"]||t1["file"])<=>(t2["Title"]||t2["file"])
+	end
+end
+
 #SECTION: other functions
 get '/' do
 	redirect '/index.html'
@@ -81,8 +94,8 @@ get '/search/:query' do
 			end
 		end
 	end
-	res={"Tracks"=>tracks}
-	params[:tags].each {|tag| res[tag] = tracks.map {|t| t[tag]}.uniq} if params[:tags]
+	res={"Tracks"=>tracks.sort(&track_sort)}
+	params[:tags].each {|tag| res[tag] = tracks.map{|t| t[tag]}.uniq.sort_by {|x| x || ""}} if params[:tags]
 	res.to_json
 end
 
@@ -93,7 +106,7 @@ get '/filter' do
 		#I don't know if this is standard behavior of get params, and if it is, how to guarantee it.
 		#it does, however, seem to work for the moment
 	params[:filters].each do |(tag,selected_choices)|
-		available[tag]=tracks.map {|entry| entry[tag]}.uniq
+		available[tag]=tracks.map {|entry| entry[tag]}.uniq.sort_by {|x| x || ""}
 		if (selected_choices) # if they gave us no choices, just return everything.
 			if i=selected_choices.index("")
 				selected_choices[i]=nil #for unknown albums
@@ -101,7 +114,7 @@ get '/filter' do
 			tracks.select! {|entry| selected_choices.include? entry[tag]}
 		end
 	end
-	available["Tracks"]=tracks
+	available["Tracks"]=tracks.sort(&track_sort)
 	available.to_json
 end
 #SECTION: 'queue' functions. MPD calls these 'playlist' commands, but I'm differentiating here the live queue from saved playlists.
