@@ -15,34 +15,52 @@ put '/reload_db' do
 end
 	#meant to be used with the file_uploader javascript thing
 require 'tempfile'
+require 'fileutils'
+class String
+	def sanitize_path
+		gsub(/(\.\.)|\//,'')#HOPEFULLY safe for unix systems
+	end
+	def sanitize_path!
+		gsub!(/(\.\.)|\//,'')
+	end
+end
 post '/upload_file' do
-	begin
-		fname=params[:qqfile]
-		t=Tempfile.new(fname) do |f|
-			f << request.env["rack.input"].read
-		end
+	fname=params[:qqfile].sanitize_path
+	t=Tempfile.open(fname) do |f|
+		f << request.env["rack.input"].read
 		artist,album = case fname.match(/\.[^.]*$/)[0].downcase #for the extension
 			when ".mp3"
-				Mp3Info.open(t.path) {|m| [m.tag["artist"],[m.tag["album"]]}
+				Mp3Info.open(f.path) {|m| [m.tag["artist"],m.tag["album"]]}
 			when ".m4a",".mp4","m4v"
 				m=MP4Info.open(t.path)
 				[m.ART,m.ALB]
 			when ".wav"
 				[nil,nil] #NO METADATA ON WAV, I THINK
 			when ".wma"
-				m=WmaInfo.new(t.path)
-				[m.tags["artist"],m.tags["album"] #UNTESTED, need wma with acceptable tags
+				m=WmaInfo.new(f.path)
+				[m.tags["artist"],m.tags["album"]] #UNTESTED, need wma with acceptable tags
 			when ".aif"
 				[nil,nil] #NO IDEA HERE, I don't think I have tagged aif files either
 			when ".ogg"
-				OggInfo.open(t.path) {|m| [m.tag["artist"],m.tag["album"]]}
+				OggInfo.open(f.path) {|m| [m.tag["artist"],m.tag["album"]]}
 			else
+				[nil,nil] #UNKNOWN EXTENSION, should talk to someone ;)
 		end
-	ensure
-		t.close
-		t.unlink
+		path="~/Music"+if (artist.nil?)
+			"/untagged_uploads"
+		else
+			artist.sanitize_path!
+			if album
+				"/#{artist}/#{album.sanitize_path}"
+			else
+				"/#{artist}"
+			end
+		end+"/"
+		FileUtils.mkpath(path)
+			#TODO: check for filename collision
+		FileUtils.cp f.path,path+fname
 	end
-	'{ "success": true }'
+	{:success=> true }.to_json
 end
 #SECTION: search functions
 def all_tracks
