@@ -3,6 +3,7 @@ require './mpd_driver.rb'
 $mpd=MPD.new("chicken.local")
 
 track_sort=Proc.new do |t1,t2|
+	#REWRITE THIS3
 	if t1["Track"]&&t2["Track"]
 		t1["Track"].to_i<=>t2["Track"].to_i
 	elsif t1["Track"]

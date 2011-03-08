@@ -203,7 +203,7 @@
 				var uploader = new qq.FileUploader({
 					element: document.getElementById('file-uploader'),
 					action: '/upload_file'//,
-					//onComplete:function(){ajax('/reload_db','put',null,function(d){update_view();});}
+					onComplete:function(){ajax('/reload_db','put',null,function(d){update_view();});}
 				});
 				document.getElementById('qq-upload-button').textContent="Upload Songs"
 			}
