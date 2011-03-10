@@ -2,16 +2,15 @@
 require './mpd_driver.rb'
 $mpd=MPD.new("chicken.local")
 
-track_sort=Proc.new do |t1,t2|
-	#REWRITE THIS3
-	if t1["Track"]&&t2["Track"]
-		t1["Track"].to_i<=>t2["Track"].to_i
-	elsif t1["Track"]
-		-1
-	elsif t2["Track"]
-		1
-	else
-		(t1["Title"]||t1["file"])<=>(t2["Title"]||t2["file"])
+
+def track_sort_by(filters)
+	#sensible defaults for now
+		tag_order=(filters||{}).keys+["Track","Title","file"]
+		lambda do |track|
+			#future feature: more straightforward and flexible way of transforming all the tags into a sortable form, accounting of course for nil
+		vals=tag_order.map {|tag| (track[tag]||"ZZZZZZZZZZ").downcase}
+		vals[tag_order.index "Track"]=track["Track"].to_i if tag_order.include?  "Track" #in cases like track = '1/12', '2/12', etc., to_i gives us the  first number. convenient.
+		vals
 	end
 end
 
@@ -95,8 +94,8 @@ get '/search/:query' do
 			end
 		end
 	end
-	res={"Tracks"=>tracks.sort(&track_sort)}
-	params[:tags].each {|tag| res[tag] = tracks.map{|t| t[tag]}.uniq.sort_by {|x| x || ""}} if params[:tags]
+	res={"Tracks"=>tracks.sort_by(&track_sort_by(params[:filters]))}
+	params[:tags].each {|tag| res[tag] = tracks.map{|t| t[tag]}.uniq.sort_by {|x| (x||"").downcase}} if params[:tags]
 	res.to_json
 end
 
@@ -107,7 +106,7 @@ get '/filter' do
 		#I don't know if this is standard behavior of get params, and if it is, how to guarantee it.
 		#it does, however, seem to work for the moment
 	params[:filters].each do |(tag,selected_choices)|
-		available[tag]=tracks.map {|entry| entry[tag]}.uniq.sort_by {|x| x || ""}
+		available[tag]=tracks.map {|entry| entry[tag]}.uniq.sort_by {|x| (x||"").downcase}
 		if (selected_choices) # if they gave us no choices, just return everything.
 			if i=selected_choices.index("")
 				selected_choices[i]=nil #for unknown albums
@@ -115,7 +114,9 @@ get '/filter' do
 			tracks.select! {|entry| selected_choices.include? entry[tag]}
 		end
 	end
-	available["Tracks"]=tracks.sort(&track_sort)
+	
+
+	available["Tracks"]=tracks.sort_by(&track_sort_by(params[:filters]))
 	available.to_json
 end
 #SECTION: 'queue' functions. MPD calls these 'playlist' commands, but I'm differentiating here the live queue from saved playlists.
