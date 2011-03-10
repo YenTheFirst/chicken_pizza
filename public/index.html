@@ -108,6 +108,7 @@
 				var e=document.getElementById(tag_to_id(tag));
 				for (var i=0; i<e.options.length; i++)
 					e.options[i].selected=null;
+				update_view();
 			}
 			function collect_filters(){
 				var all={};
