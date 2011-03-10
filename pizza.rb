@@ -60,7 +60,7 @@ post '/upload_file' do
 			else
 				[nil,nil] #UNKNOWN EXTENSION, should talk to someone ;)
 		end
-		path="~/Music"+if (artist.nil?)
+		path="/home/moto/Music"+if (artist.nil?)
 			"/untagged_uploads"
 		else
 			artist.sanitize_path!
