@@ -68,11 +68,10 @@
 			//meat & potatoes
 			function update_view(){
 				filters=collect_filters();
-				var url="/filter?"+obj_to_query_string(filters,"filters")
+				var url="/search_and_filter?"+obj_to_query_string(filters,"filters")+"&query="+document.getElementById("search_box").value
 				
 				ajax(url,"GET",null,function(response){
 					update_selectors(response,filters);
-					document.getElementById("search_box").value="";
 				})
 			}
 			function update_selectors(data,filters){
@@ -104,6 +103,11 @@
 						}
 					}
 				}
+			}
+			function clear_selector(tag){
+				var e=document.getElementById(tag_to_id(tag));
+				for (var i=0; i<e.options.length; i++)
+					e.options[i].selected=null;
 			}
 			function collect_filters(){
 				var all={};
@@ -182,10 +186,11 @@
 				if (timeout_id)
 					clearTimeout(timeout_id)
 				timeout_id=setTimeout(function(){
-					do_search(document.getElementById("search_box").value);
+					update_view();
 				},250);
 			}
 			function do_search(query){
+				alert("do_search depreciating, not meant to be called")
 				ajax("/search/"+encodeURIComponent(query)+"?"+obj_to_query_string(["Genre","Artist","Album"],"tags"),"GET",null,function(d){
 					update_selectors(d,{});
 				});
@@ -227,13 +232,26 @@
 		<a href="#" onclick="simple_control('/playback/next','post');">next</a>
 		<label for="vol">Volume</label><input id="vol" type="text" onchange="simple_control('/playback/setvol?vol='+this.value,'put');"/>
 	</div>
-	<div class="tagbox"><h3  for="genre_selector">Genre</h3><select multiple="true" class="filter_selector" id="genre_selector"></select></div>
-	<div class="tagbox"><h3  for="artist_selector">Artist</h3><select multiple="true" class="filter_selector" id="artist_selector"></select></div>
-	<div class="tagbox"><h3  for="album_selector">Album</h3><select multiple="true" class="filter_selector" id="album_selector" ondblclick="add_tracks();"></select></div>
+	<div class="tagbox">
+		<h3  for="genre_selector">Genre<a href="#" onclick="clear_selector('genre'); false">(clear)</a></h3>
+		
+		<select multiple="true" class="filter_selector" id="genre_selector"></select>
+	</div>
+	<div class="tagbox">
+		<h3  for="artist_selector">Artist<a href="#" onclick="clear_selector('artist'); false">(clear)</a></h3>
+		
+		<select multiple="true" class="filter_selector" id="artist_selector"></select>
+	</div>
+	<div class="tagbox">
+		<h3  for="album_selector">Album<a href="#" onclick="clear_selector('album'); false">(clear)</a></h3>
+		
+		<select multiple="true" class="filter_selector" id="album_selector" ondblclick="add_tracks();"></select>
+	</div>
 	<div class="tagbox"><h3  for="tracks_selector">Tracks</h3><select multiple="true" id="tracks_selector" ondblclick="add_tracks()"></select></div>
 	<div style="clear: both"></div>
 	<a href="#" onclick="add_tracks()">Add Selected Tracks</a>
 	<label for="search_box">search</label><input id="search_box" type="text" onkeydown="debounce_search();"/>
+	<a href="#" onclick="document.getElementById('search_box').value='';update_view();false">(clear)</a>
 	<div id="status">
 		<h2>status</h2>
 		<ul id="status_list"></ul>

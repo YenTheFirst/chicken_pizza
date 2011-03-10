@@ -119,6 +119,24 @@ get '/filter' do
 	available["Tracks"]=tracks.sort_by(&track_sort_by(params[:filters]))
 	available.to_json
 end
+
+get '/search_and_filter' do
+	#mostly copy-pasted from the above functions
+	all_q=params[:query].split(/\s/).map {|q| Regexp.new(q,true)}
+	tracks=all_tracks.select {|entry| all_q.all? {|query| entry.any? {|key,value| query === value}}}
+	available={}
+	params[:filters].each do |(tag,selected_choices)|
+		available[tag]=tracks.map {|entry| entry[tag]}.uniq.sort_by {|x| (x||"").downcase}
+		if (selected_choices) # if they gave us no choices, just return everything.
+			if i=selected_choices.index("") #for unknown albums - it'll be passed as a "" from the client, we convert it to nil for comparison with hash
+				selected_choices[i]=nil
+			end
+			tracks.select! {|entry| selected_choices.include? entry[tag]}
+		end
+	end
+	available["Tracks"]=tracks.sort_by(&track_sort_by(params[:filters]))
+	available.to_json
+end
 #SECTION: 'queue' functions. MPD calls these 'playlist' commands, but I'm differentiating here the live queue from saved playlists.
 #all commands will return the current queue in JSON
 #NOTE: all these will have to add a bit of thread/version safety
