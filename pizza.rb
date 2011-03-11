@@ -45,7 +45,7 @@ post '/upload_file' do
 			when ".mp3"
 				Mp3Info.open(f.path) {|m| [m.tag["artist"],m.tag["album"]]}
 			when ".m4a",".mp4","m4v"
-				m=MP4Info.open(t.path)
+				m=MP4Info.open(f.path)
 				[m.ART,m.ALB]
 			when ".wav"
 				[nil,nil] #NO METADATA ON WAV, I THINK
