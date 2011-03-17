@@ -254,6 +254,10 @@
 		<a href="#" onclick="return simple_control('/playback/next','post');">next</a>
 		<label for="vol">Volume</label><input id="vol" type="text" onchange="return simple_control('/playback/setvol?vol='+this.value,'put');"/>
 	</div>
+		<div id="queue">
+		<h2>queue</h2>
+		<ul id="queue_list"></ul>
+	</div>
 	<div class="tagbox">
 		<h3  for="genre_selector">Genre<a href="#" onclick="clear_selector('genre'); false">(clear)</a></h3>
 		
@@ -277,9 +281,5 @@
 	<div id="status">
 		<h2>status</h2>
 		<ul id="status_list"></ul>
-	</div>
-	<div id="queue">
-		<h2>queue</h2>
-		<ul id="queue_list"></ul>
 	</div>
 </body>
