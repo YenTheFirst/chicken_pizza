@@ -21,6 +21,10 @@ class MPD
 	def queue
 		send_command("playlistinfo").slice_before(/^file/).map {|line| line_to_hash(line)}
 	end
+	def add(fname)
+		r=send_command("addid \"#{fname.gsub('"','\"')}\"")
+		r.match(/^Id: (\d+)/) ? $1 : nil #maybe raise error instead?
+	end
 	def line_to_hash(line)
 		Hash[*line.map {|entry| entry.match(/([^:]*): (.*)/)[1,2]}.flatten]
 	end

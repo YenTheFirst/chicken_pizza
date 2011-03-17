@@ -1,7 +1,8 @@
 #require 'mpd_driver.rb'
 require './mpd_driver.rb'
 $mpd=MPD.new("chicken.local")
-
+$remote_hosts={}
+$playlist_hosts={}
 
 def track_sort_by(filters)
 	#sensible defaults for now
@@ -13,6 +14,7 @@ def track_sort_by(filters)
 		vals
 	end
 end
+
 
 #SECTION: other functions
 get '/' do
@@ -143,9 +145,10 @@ end
 post '/queue/add' do
 	#add params[:filename] to the queue
 	#TODO: safety here
-	safe_name=params[:filename].gsub('"','\"')
-	res=$mpd.send_command("add \"#{safe_name}\"")
-	if res.empty?
+
+	id=$mpd.add(params[:filename])
+	if res
+		$playlist_hosts[id]=request.env["REMOTE_HOST"]
 		'["ok"]'
 	else
 		res
@@ -164,10 +167,12 @@ delete '/queue/delete/:pos' do
 	'["ok"]'
 end
 put '/queue/move/:song_id' do
-	$mpd.send_command("move #{params[:song_id]} #{params[:pos]}")
+	$playlist_hosts[params[:song_id]]=request.env["REMOTE_HOST"]
+	$mpd.send_command("moveid #{params[:song_id]} #{params[:pos]}")
+	'["ok"]'
 end
 get '/queue/list' do
-	$mpd.queue.to_json
+	$mpd.queue.map {|x| x.merge({"Requester"=>$playlist_hosts[x["Id"]]})}.to_json
 end
 #SECTION: 'playlist' functions
 #SECTION: playback functions

@@ -11,12 +11,22 @@
 			.tagbox{
 				float:left;
 			}
+			/*this doesn't work*/
+			.status, .queue{
+				float: left;
+			}
+			.status{
+				width: 20%;
+			}
+			.queue{
+				width: 2px;
+			}
 		</style>
 		<script type="text/javascript" src="/valums-file-uploader/client/fileuploader.js"></script>
 		<link type="text/css" href="/valums-file-uploader/client/fileuploader.css" media="screen" rel="stylesheet"/>
 		<script type="text/javascript">
 			//global vars
-			status={queue_version: -1}
+			the_status={queue_version: -1}
 			
 			//util functions
 			function ajax(url,method,postdata,f){
@@ -134,13 +144,13 @@
 						li.textContent=i+": "+data[i]
 						ul.appendChild(li)
 					}
-					if (status.queue_version!=data.queue_version){
+					if (the_status.queue_version!=data.queue_version){
 						update_queue(data.song);
 					}
 					document.getElementById("vol").value=data.volume;
 					
 					//now that comparisons are done, use this
-					status=data;
+					the_status=data;
 				});
 			}
 			function update_queue(song_i){
@@ -151,15 +161,25 @@
 						var track=data[i];
 						
 						var li= document.createElement("li");
-						var a = document.createElement("a")
-						a.onclick=function(){simple_control("/queue/delete/"+this.parentElement.i,"delete"); return false;}
-						li.ondblclick=function(){simple_control("/playback/play?pos="+this.i,"put");}
+						var minus = document.createElement("a");
+						minus.onclick=function(){return simple_control("/queue/delete/"+this.parentElement.i,"delete");}
+						li.ondblclick=function(){return simple_control("/playback/play?pos="+this.i,"put");}
 						ul.appendChild(li);
-						li.appendChild(a);
-						a.appendChild(document.createTextNode("(-)"));
-						a.setAttribute("href","#");
-						li.appendChild(document.createTextNode("  "+(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")));
+						li.appendChild(minus);
+						minus.appendChild(document.createTextNode("(-)"));
+						minus.setAttribute("href","#");
+						var playNext=document.createElement("a");
+						
+						playNext.onclick=function(){
+							var cur = parseInt(the_status.song);
+							var target = (this.parentElement.i <=cur) ? cur : cur+1;
+							return simple_control("/queue/move/"+this.parentElement.track_id+"?pos="+target,"put");}
+						li.appendChild(playNext);
+						playNext.appendChild(document.createTextNode("(play next)"));
+						playNext.setAttribute("href","#");
+						li.appendChild(document.createTextNode("  ["+(track["Requester"]||"Unknown Requester")+"]: "+(track["Artist"]||"(Unknown Artist)")+" - "+(track["Title"]||"(Unknown Title, file="+track["file"]+")")));
 						li.i=i
+						li.track_id=track["Id"]
 						if (i<song_i)
 							li.className="already_played"
 						if (i==song_i)
@@ -171,6 +191,7 @@
 			}
 			function simple_control(url,method){
 				ajax(url,method,null,function(d){update_status();});
+				return false;
 			}
 			function add_tracks(){
 				
@@ -227,11 +248,11 @@
 	<div id="controls">
 		<h2>Controls</h2>
 		<!--<a href="#" onclick="ajax('/reload_db','put',null,function(d){update_view();});">reload</a>-->
-		<a href="#" onclick="simple_control('/queue/clear','put');">clear queue</a>
-		<a href="#" onclick="simple_control('/playback/play','put');">play from beginning</a>
-		<a href="#" onclick="simple_control('/playback/previous','post');">previous</a>
-		<a href="#" onclick="simple_control('/playback/next','post');">next</a>
-		<label for="vol">Volume</label><input id="vol" type="text" onchange="simple_control('/playback/setvol?vol='+this.value,'put');"/>
+		<a href="#" onclick="return simple_control('/queue/clear','put');">clear queue</a>
+		<a href="#" onclick="return simple_control('/playback/play','put');">play from beginning</a>
+		<a href="#" onclick="return simple_control('/playback/previous','post');">previous</a>
+		<a href="#" onclick="return simple_control('/playback/next','post');">next</a>
+		<label for="vol">Volume</label><input id="vol" type="text" onchange="return simple_control('/playback/setvol?vol='+this.value,'put');"/>
 	</div>
 	<div class="tagbox">
 		<h3  for="genre_selector">Genre<a href="#" onclick="clear_selector('genre'); false">(clear)</a></h3>
