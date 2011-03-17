@@ -147,11 +147,11 @@ post '/queue/add' do
 	#TODO: safety here
 
 	id=$mpd.add(params[:filename])
-	if res
+	if id
 		$playlist_hosts[id]=request.env["REMOTE_HOST"]
 		'["ok"]'
 	else
-		res
+		[404,'no such filename']
 	end
 	#TODO: return
 end
