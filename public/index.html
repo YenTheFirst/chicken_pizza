@@ -144,7 +144,7 @@
 						li.textContent=i+": "+data[i]
 						ul.appendChild(li)
 					}
-					if (the_status.queue_version!=data.queue_version){
+					if (the_status.queue_version!=data.queue_version || the_status.song!=data.song ||the_status.songid!=data.songid){
 						update_queue(data.song);
 					}
 					document.getElementById("vol").value=data.volume;
