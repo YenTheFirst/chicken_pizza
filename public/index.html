@@ -21,6 +21,22 @@
 			.queue{
 				width: 2px;
 			}
+			#play_status{
+				font-weight: bold;
+				font-size: 4em;
+				margin: 0px auto 0px auto;
+				width:100%;
+				text-align: center;
+			}
+			.playstate_play{
+				background: green;
+			}
+			.playstate_pause{
+				background: yellow;
+			}
+			.playstate_stop{
+				background: red;
+			}
 		</style>
 		<script type="text/javascript" src="/valums-file-uploader/client/fileuploader.js"></script>
 		<link type="text/css" href="/valums-file-uploader/client/fileuploader.css" media="screen" rel="stylesheet"/>
@@ -151,7 +167,26 @@
 					
 					//now that comparisons are done, use this
 					the_status=data;
+					update_header();
+					
 				});
+			}
+			function update_header(){
+				header=document.getElementById("play_status")
+				//max says case statements are effed up. oh well.
+				header.className=header.className.replace(/\b\s*playstate_.*\s*?\b/g,'')
+				if (the_status.state==="play"){
+					header.innerHTML="Playing"
+					header.classList.add("playstate_play");
+				}else if (the_status.state=="pause"){
+					header.innerHTML="Paused"
+					header.classList.add("playstate_pause");
+				}else if (the_status.state=="stop"){
+					header.innerHTML="Not Playing. Stopped. El Stoppo."
+					header.classList.add("playstate_stop");
+				}else{
+					//do something sinister. or sensible.
+				}
 			}
 			function update_queue(song_i){
 				ajax("/queue/list","GET",null,function(data){
@@ -246,6 +281,7 @@
 			<!-- or put a simple form for upload here -->
 		</noscript>
 	</div>
+	<h1 id="play_status"></h1>
 	<div id="controls">
 		<h2>Controls</h2>
 		<!--<a href="#" onclick="ajax('/reload_db','put',null,function(d){update_view();});">reload</a>-->
