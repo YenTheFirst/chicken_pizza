@@ -9,7 +9,7 @@ def track_sort_by(filters)
 		tag_order=(filters||{}).keys+["Track","Title","file"]
 		lambda do |track|
 			#future feature: more straightforward and flexible way of transforming all the tags into a sortable form, accounting of course for nil
-		vals=tag_order.map {|tag| (track[tag]||"ZZZZZZZZZZ").downcase}
+		vals=tag_order.map {|tag| (track[tag]||"ZZZZZZZZZZ").downcase.gsub(/^(the|a\s+)/,'')}
 		vals[tag_order.index "Track"]=track["Track"].to_i if tag_order.include?  "Track" #in cases like track = '1/12', '2/12', etc., to_i gives us the  first number. convenient.
 		vals
 	end
