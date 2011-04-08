@@ -243,11 +243,20 @@
 				ajax(url,method,null,function(d){update_status();});
 				return false;
 			}
+			
+			add_tracks_count=0;
 			function add_tracks(){
 				var e=document.getElementById("tracks_selector")
 				for (var i=0; i<e.options.length; i++){
 					if (e.options[i].selected){
-						ajax("/queue/add?filename="+encodeURIComponent(e.options[i].value),"post",null,function(d){})
+						add_tracks_count+=1;
+						ajax("/queue/add?filename="+encodeURIComponent(e.options[i].value),"post",null,function(d){
+							add_tracks_count-=1;
+							if (add_tracks_count<=0){
+								add_tracks_count=0;
+								update_status();
+							}
+						});
 					}
 				}
 				update_status();
@@ -301,7 +310,7 @@
 		</noscript>
 	</div>
 	<h1 id="play_status"></h1>
-	<a href="#" id="random_link" onclick="add_random_track()">Add A Random Track!!!!</a>(your current filters <em>will<em> apply)
+	<a href="#" id="random_link" onclick="add_random_track()">Add A Random Track!!!!</a>(your current filters <em>will</em> apply)
 	<div id="controls">
 		<h2>Controls</h2>
 		<!--<a href="#" onclick="ajax('/reload_db','put',null,function(d){update_view();});">reload</a>-->
