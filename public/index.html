@@ -202,7 +202,7 @@
 						
 						var li= document.createElement("li");
 						var minus = document.createElement("a");
-						minus.onclick=function(){return simple_control("/queue/delete/"+this.parentElement.i,"delete");}
+						minus.onclick=function(){return simple_control("/queue/delete/"+this.parentNode.i,"delete");}
 						li.ondblclick=function(){return simple_control("/playback/play?pos="+this.i,"put");}
 						ul.appendChild(li);
 						li.appendChild(minus);
@@ -212,8 +212,8 @@
 						
 						playNext.onclick=function(){
 							var cur = parseInt(the_status.song);
-							var target = (this.parentElement.i <=cur) ? cur : cur+1;
-							return simple_control("/queue/move/"+this.parentElement.track_id+"?pos="+target,"put");}
+							var target = (this.parentNode.i <=cur) ? cur : cur+1;
+							return simple_control("/queue/move/"+this.parentNode.track_id+"?pos="+target,"put");}
 						li.appendChild(playNext);
 						playNext.appendChild(document.createTextNode("(play next)"));
 						playNext.setAttribute("href","#");
