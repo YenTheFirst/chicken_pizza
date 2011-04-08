@@ -213,7 +213,17 @@
 						playNext.onclick=function(){
 							var cur = parseInt(the_status.song);
 							var target = (this.parentNode.i <=cur) ? cur : cur+1;
-							return simple_control("/queue/move/"+this.parentNode.track_id+"?pos="+target,"put");}
+							if (the_status.state==="play"){
+								simple_control("/queue/move/"+this.parentNode.track_id+"?pos="+target,"put");
+							}
+							else{
+								ajax("/queue/move/"+this.parentNode.track_id+"?pos=0","put",null,function(d){
+									simple_control("/playback/play","put");
+								});
+							}
+							return false;
+						}
+						
 						li.appendChild(playNext);
 						playNext.appendChild(document.createTextNode("(play next)"));
 						playNext.setAttribute("href","#");
