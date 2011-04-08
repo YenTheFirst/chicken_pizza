@@ -213,13 +213,13 @@
 						playNext.onclick=function(){
 							var cur = parseInt(the_status.song);
 							var target = (this.parentNode.i <=cur) ? cur : cur+1;
-							if (the_status.state==="play"){
-								simple_control("/queue/move/"+this.parentNode.track_id+"?pos="+target,"put");
-							}
-							else{
+							if (the_status.state==="stop"){
 								ajax("/queue/move/"+this.parentNode.track_id+"?pos=0","put",null,function(d){
 									simple_control("/playback/play","put");
 								});
+							}
+							else{
+								simple_control("/queue/move/"+this.parentNode.track_id+"?pos="+target,"put");
 							}
 							return false;
 						}
@@ -305,11 +305,12 @@
 	<div id="controls">
 		<h2>Controls</h2>
 		<!--<a href="#" onclick="ajax('/reload_db','put',null,function(d){update_view();});">reload</a>-->
-		<a href="#" onclick="return simple_control('/queue/clear','put');">clear queue</a>
-		<a href="#" onclick="return simple_control('/playback/play','put');">play from beginning</a>
 		<a href="#" onclick="return simple_control('/playback/previous','post');">previous</a>
-		<a href="#" onclick="return simple_control('/playback/next','post');">next</a>
-		<label for="vol">Volume</label><input id="vol" type="text" onchange="return simple_control('/playback/setvol?vol='+this.value,'put');"/>
+		<a href="#" onclick="return simple_control('/playback/play','put');">play</a>
+		<a href="#" onclick="return simple_control('/playback/pause','put');">pause</a>
+		<a href="#" onclick="return simple_control('/playback/next','post');">next</a><br>
+		<label for="vol">Volume</label><input id="vol" type="text" onchange="return simple_control('/playback/setvol?vol='+this.value,'put');"/><br/>
+		<a href="#" onclick="return simple_control('/queue/clear','put');">clear queue</a>
 	</div>
 		<div id="queue">
 		<h2>queue</h2>
