@@ -21,6 +21,11 @@
 			.queue{
 				width: 2px;
 			}
+			#random_link{
+				font-weight:bold;
+				font-size:2em;
+				color: red;
+			}
 			#play_status{
 				font-weight: bold;
 				font-size: 4em;
@@ -229,7 +234,6 @@
 				return false;
 			}
 			function add_tracks(){
-				
 				var e=document.getElementById("tracks_selector")
 				for (var i=0; i<e.options.length; i++){
 					if (e.options[i].selected){
@@ -237,6 +241,11 @@
 					}
 				}
 				update_status();
+			}
+			function add_random_track(){
+				var e=document.getElementById("tracks_selector")
+				var pick=e.options[Math.floor(Math.random()*e.options.length)];
+				ajax("/queue/add?filename="+encodeURIComponent(pick.value),"post",null,function(d){update_status();})
 			}
 			timeout_id=null
 			function debounce_search(){
@@ -282,6 +291,7 @@
 		</noscript>
 	</div>
 	<h1 id="play_status"></h1>
+	<a href="#" id="random_link" onclick="add_random_track()">Add A Random Track!!!!</a>
 	<div id="controls">
 		<h2>Controls</h2>
 		<!--<a href="#" onclick="ajax('/reload_db','put',null,function(d){update_view();});">reload</a>-->
