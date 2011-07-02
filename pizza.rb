@@ -1,5 +1,6 @@
 #require 'mpd_driver.rb'
 require './mpd_driver.rb'
+require 'twitter'
 $mpd=MPD.new("chicken.local")
 $remote_hosts={}
 $playlist_hosts={}
@@ -173,12 +174,22 @@ put '/queue/move/:song_id' do
 end
 get '/queue/list' do
 	$mpd.queue.map {|x| x.merge({"Requester"=>$playlist_hosts[x["Id"]]})}.to_json
+	Twitter.configure do |config|
+    config.consumer_key = ENV["TWITTER_CONSUMER_KEY"]
+    config.consumer_secret = ENV["TWITTER_CONSUMER_SECRET"]
+    config.oauth_token = ENV["TWITTER_OAUTH_TOKEN"]
+    config.oauth_token_secret = ENV["OAUTH_TOKEN_SECRET"]
+  end
+  
+  a =  $mpd.queue.map {|x| x.merge({"Requester"=>$playlist_hosts[x["Id"]]})}.to_json
+  Twitter.update("#{a}")
 end
 #SECTION: 'playlist' functions
 #SECTION: playback functions
 post '/playback/next' do
 	$mpd.send_command("next")
 	'["ok"]'
+	
 end
 post '/playback/previous' do
 	$mpd.send_command("previous")
@@ -192,6 +203,7 @@ end
 put '/playback/play' do
 	$mpd.send_command("play #{params[:pos]}")
 	'["ok"]'
+
 end
 put '/playback/setvol' do
 	$mpd.send_command("setvol #{params[:vol]}")
