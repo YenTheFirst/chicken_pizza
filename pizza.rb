@@ -181,8 +181,10 @@ get '/queue/list' do
     config.oauth_token_secret = ENV["OAUTH_TOKEN_SECRET"]
   end
 
-  a =  $mpd.queue.map {|x| x.merge({"Requester"=>$playlist_hosts[x["Id"]]})}.to_json
-  Twitter.update("#{a}")
+  song = $mpd.queue.find{|s| s["Id"] == $mpd.status["songid"]}
+  tweet_string = [song["Artist"], song["Title"]].compact.join(' - ')
+  tweet_string << " (requested by #{song["Requester"]})" if song["Requester"]
+  Twitter.update(tweet_string[0..139])
 end
 #SECTION: 'playlist' functions
 #SECTION: playback functions
