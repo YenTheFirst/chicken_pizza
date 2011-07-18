@@ -117,7 +117,7 @@ get '/filter' do
 			tracks.select! {|entry| selected_choices.include? entry[tag]}
 		end
 	end
-	
+
 
 	available["Tracks"]=tracks.sort_by(&track_sort_by(params[:filters]))
 	available.to_json
@@ -156,7 +156,7 @@ post '/queue/add' do
 	end
 	#TODO: return
 end
-put '/queue/clear' do 
+put '/queue/clear' do
 	$mpd.send_command("clear")
 	#TODO: return
 	'["ok"]'
@@ -180,7 +180,7 @@ get '/queue/list' do
     config.oauth_token = ENV["TWITTER_OAUTH_TOKEN"]
     config.oauth_token_secret = ENV["OAUTH_TOKEN_SECRET"]
   end
-  
+
   a =  $mpd.queue.map {|x| x.merge({"Requester"=>$playlist_hosts[x["Id"]]})}.to_json
   Twitter.update("#{a}")
 end
@@ -189,7 +189,7 @@ end
 post '/playback/next' do
 	$mpd.send_command("next")
 	'["ok"]'
-	
+
 end
 post '/playback/previous' do
 	$mpd.send_command("previous")
